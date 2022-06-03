@@ -1,0 +1,55 @@
+version: '3.8'
+services:
+  mongodb:
+    container_name: mongodb
+    image: 'mongo' #Ready to use image
+    volumes:
+      - data:/data/db # named volume
+    #environment:
+      #- MONGODB_USERNAME=max
+      #- MONGODB_PASSWORD=secret
+      # MONGODB_USERNAME: max
+      # MONGODB_PASSWORD: secret
+    env_file:
+      - ./backend/env/mongo.env
+
+  backend:
+    container_name: goals-backend
+    # build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - '80:80' # publishing ports
+    volumes:
+      - logs:/app/logs # named volume
+      - ./backend:/app # bindmount
+      - /app/node_modules # anonymous volume
+    #environment:
+      #- MONGO_INITDB_ROOT_USERNAME=max
+      #- MONGO_INITDB_ROOT_PASSWORD=secret
+    env_file:
+      - ./backend/env/backend.env
+    depends_on:
+      - mongodb
+
+  frontend:
+    container_name: goals-frontend
+    # build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    volumes:
+        - ./frontend/src:/app/src 
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+
+# all named volumes must be listed here bt bindmounts&anonymous v not
+volumes:
+  data:
+  logs:
+
